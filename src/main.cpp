@@ -28,7 +28,7 @@ void setup() {
     filter_main.begin(250); // must match updateAHRS frequency defined in sensors.hpp (250Hz / 4ms period)
 
     pinMode(SOLENOID_PIN, OUTPUT);
-    pinMode(LIMIT_SWITCH_PIN, INPUT);
+    pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH_PIN), limitSwitchISR, RISING);
 
     steering_servo.attach(SERVO_PIN);
