@@ -23,8 +23,6 @@ class Magnetometer106 {
     float y_offset = 0.0, y_scaling = 1.0; // scaling factors are for soft-iron calibration
     float z_offset = 0.0, z_scaling = 1.0;
 
-    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
-
     void calibrateToEEPROM() {
         float x_min = 2147483646, x_max = -2147483646; // 32-bit integer limits
         float y_min = 2147483646, y_max = - 2147483646;
@@ -95,6 +93,8 @@ class Magnetometer106 {
     }
 
 public:
+    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
+
     void initialize() {
         if (!sensor.init()) { // initializes the I2C communcation between the ESP32 and the sensor
             Serial.println("Failed to detect/initialize LIS3MDL");

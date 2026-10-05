@@ -10,6 +10,8 @@
 const int SOLENOID_PIN = D7;
 const int OPEN_TIME = 750, CLOSE_TIME = 250;
 
+const int LED_BUILTIN_PIN = D8;
+
 volatile bool solenoid_state = false;
 volatile bool actuation_allowed = true;
 
@@ -54,6 +56,7 @@ void firePiston(void *param) {
 
         if (actuation_allowed) {
             digitalWrite(SOLENOID_PIN, solenoid_state);
+            digitalWrite(LED_BUILTIN_PIN, solenoid_state);
 
             if (solenoid_state) { vTaskDelay(pdMS_TO_TICKS(OPEN_TIME)); }
             else { vTaskDelay(pdMS_TO_TICKS(CLOSE_TIME)); }
@@ -63,7 +66,8 @@ void firePiston(void *param) {
 
         else {
             digitalWrite(SOLENOID_PIN, LOW); // turn the solenoid off if the pin is left HIGH from the actuation_allowed cutoff
-            vTaskDelay(50);
+            digitalWrite(LED_BUILTIN_PIN, HIGH); // leave the LED on to signify the end of the run
+            vTaskDelay(250);
         }
     }
 }

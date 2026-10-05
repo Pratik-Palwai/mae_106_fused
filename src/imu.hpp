@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <LSM6.h>
-#include <MadgwickAHRS.h>
 
 #include "packets_vars_functions.hpp"
 

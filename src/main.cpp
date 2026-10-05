@@ -17,7 +17,7 @@ void setup() {
     Wire.setClock(400000); // Set I2C clock to 400kHz Fast Mode
     EEPROM.begin(24); // save 24 bytes: 3 axes * 2 values (scaling + offset) * 4 bytes per float
 
-    telemetry_server_main.initialize();
+    // telemetry_server_main.initialize();
 
     imu_main.initialize();
     compass_main.initialize();
@@ -28,6 +28,7 @@ void setup() {
     filter_main.begin(250); // must match updateAHRS frequency defined in sensors.hpp (250Hz / 4ms period)
 
     pinMode(SOLENOID_PIN, OUTPUT);
+    pinMode(LED_BUILTIN_PIN, OUTPUT);
     pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH_PIN), limitSwitchISR, RISING);
 
@@ -39,7 +40,7 @@ void setup() {
     xTaskCreate(handleSwitch, "SWITCH", 4096, NULL, 5, NULL);
     xTaskCreate(steerRobot, "STEER", 4096, NULL, 4, NULL);
     xTaskCreate(firePiston, "FIRE", 4096, NULL, 3, NULL);
-    xTaskCreate(wifiTelemetry, "WIFI", 4096, NULL, 2, NULL);
+    // xTaskCreate(wifiTelemetry, "WIFI", 4096, NULL, 2, NULL);
     xTaskCreate(serialOutput, "SERIAL", 4096, NULL, 1, NULL);
 }
 
