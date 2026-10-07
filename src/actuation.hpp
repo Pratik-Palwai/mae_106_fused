@@ -7,16 +7,17 @@
 
 #include "packets_vars_functions.hpp"
 
-const int SOLENOID_PIN = D7;
+const int SOLENOID_PIN = 5;
 const int OPEN_TIME = 750, CLOSE_TIME = 250;
 
-const int LED_BUILTIN_PIN = D8;
+const int LED_BUILTIN_PIN = 8;
+int led_status = 0;
 
 volatile bool solenoid_state = false;
 volatile bool actuation_allowed = true;
 
 Servo steering_servo;
-const int SERVO_PIN = D9;
+const int SERVO_PIN = 2;
 
 const float K_P = 0.50, K_I = 0.0, K_D = 0.0;
 PID steering_correction(&pid_input, &pid_output, &target_heading, K_P, K_I, K_D, REVERSE);  // pid mode can be DIRECT or REVERSE depending on how the servo and magnetometer are mounted
@@ -56,7 +57,6 @@ void firePiston(void *param) {
 
         if (actuation_allowed) {
             digitalWrite(SOLENOID_PIN, solenoid_state);
-            digitalWrite(LED_BUILTIN_PIN, solenoid_state);
 
             if (solenoid_state) { vTaskDelay(pdMS_TO_TICKS(OPEN_TIME)); }
             else { vTaskDelay(pdMS_TO_TICKS(CLOSE_TIME)); }
@@ -66,9 +66,17 @@ void firePiston(void *param) {
 
         else {
             digitalWrite(SOLENOID_PIN, LOW); // turn the solenoid off if the pin is left HIGH from the actuation_allowed cutoff
-            digitalWrite(LED_BUILTIN_PIN, HIGH); // leave the LED on to signify the end of the run
             vTaskDelay(250);
         }
+    }
+}
+
+void blinkLED(void *param) {
+    while (1) {
+        digitalWrite(LED_BUILTIN_PIN, led_status);
+        led_status = 1 - led_status;
+
+        vTaskDelay(125);
     }
 }
 

@@ -1,5 +1,5 @@
-#ifndef SENSORS_HPP
-#define SENSORS_HPP
+#ifndef AHRS_HPP
+#define AHRS_HPP
 
 #include <Arduino.h>
 #include <MadgwickAHRS.h>
@@ -16,8 +16,7 @@ Magnetometer106 compass_main; // creates an instance of the compass, defined in 
 
 // rtos task to update Madgwick AHRS, executed at 0.5 kHz to prevent sensor packets from being used more than once
 void updateAHRS(void *param) {
-    TickType_t last_wake = xTaskGetTickCount();
-    const TickType_t period = pdMS_TO_TICKS(4);
+    Serial.print("Starting AHRS initialization loop ... ");
 
     for (int i = 0; i < 5000; i++) {
         imu_main.read(sensor_packet_main);
@@ -27,6 +26,11 @@ void updateAHRS(void *param) {
                            sensor_packet_main.accel_x, sensor_packet_main.accel_y, sensor_packet_main.accel_z,
                            sensor_packet_main.mag_x, sensor_packet_main.mag_y, sensor_packet_main.mag_z);        
     }
+    
+    Serial.println("    finished");
+
+    TickType_t last_wake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(4);
 
     while(1) {
         imu_main.read(sensor_packet_main);  // sensor_packet_main is passed by reference (indicated by the & in imu.hpp), meaning the function can modify the passed parameter in place
@@ -34,15 +38,15 @@ void updateAHRS(void *param) {
 
         // this simple filter_main.update() method is what makes the library and filter so useful
         // instead of having to mess around with angle wrapping, the magnetometer low-pass filter, or gyro drift the filter takes care of all this
-        filter_main.update(sensor_packet_main.gyro_x, sensor_packet_main.gyro_y, sensor_packet_main.gyro_z,
-                           sensor_packet_main.accel_x, sensor_packet_main.accel_y, sensor_packet_main.accel_z,
-                           sensor_packet_main.mag_x, sensor_packet_main.mag_y, sensor_packet_main.mag_z);
-        
+
+        filter_main.update(sensor_packet_main.gyro_x, sensor_packet_main.gyro_y, sensor_packet_main.gyro_z, sensor_packet_main.accel_x, sensor_packet_main.accel_y, sensor_packet_main.accel_z, sensor_packet_main.mag_x, sensor_packet_main.mag_y, sensor_packet_main.mag_z);
+
+        // filter_main.updateIMU(sensor_packet_main.gyro_x, sensor_packet_main.gyro_y, sensor_packet_main.gyro_z, sensor_packet_main.accel_x, sensor_packet_main.accel_y, sensor_packet_main.accel_z);
         
         // get AHRS variables (roll, pitch, and yaw) and push them to ahrs_packet_main
         // for 106 we only really need yaw because the robot is flat, but it is nice and not much work to get all three axes
-        ahrs_packet_main.roll = filter_main.getPitch(); // based on board orientation the robot's roll might actually be pitch
-        ahrs_packet_main.pitch = filter_main.getRoll();
+        ahrs_packet_main.roll = filter_main.getRoll(); // based on board orientation the robot's roll might actually be pitch
+        ahrs_packet_main.pitch = filter_main.getPitch();
         ahrs_packet_main.yaw = filter_main.getYaw();
 
         ahrs_packet_main.timestamp = static_cast<long>(micros());

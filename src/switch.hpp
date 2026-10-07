@@ -5,7 +5,7 @@
 
 #include "packets_vars_functions.hpp"
 
-const int LIMIT_SWITCH_PIN = D10;
+const int LIMIT_SWITCH_PIN = 7;
 const int DEBOUNCE_TIME = 25; // [ms]
 
 static long last_time = 0;
