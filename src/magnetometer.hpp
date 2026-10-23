@@ -14,7 +14,7 @@
 #define EEPROM_MAG_Z_OFFSET_ADDRESS 16
 #define EEPROM_MAG_Z_SCALING_ADDRESS 20
 
-const int MAG_CAL_SAMPLES = 10000;
+const int MAG_CAL_SAMPLES = 20000;
 
 class Magnetometer106 {
     LIS3MDL sensor; // core sensor, the STM LIS3MDL

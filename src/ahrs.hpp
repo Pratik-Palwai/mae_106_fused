@@ -17,9 +17,34 @@ Magnetometer106 compass_main; // create an instance of the compass, defined in "
 // rtos task to update Madgwick AHRS, executed at 0.5 kHz to prevent sensor packets from being used more than once
 void updateAHRS(void *param) {
     TickType_t last_wake = xTaskGetTickCount();
-    const TickType_t period = pdMS_TO_TICKS(4);
+    const TickType_t period = pdMS_TO_TICKS(10);
+
+    Serial.print("Starting AHRS warmup loop ... ");
+
+    for (int i = 0; i < 1000; i++) {
+        imu_main.read(sensor_packet_main);
+        compass_main.read(sensor_packet_main);
+
+        filter_main.update(sensor_packet_main.gyro_x, sensor_packet_main.gyro_y, sensor_packet_main.gyro_z, 
+                        sensor_packet_main.accel_x, sensor_packet_main.accel_y, sensor_packet_main.accel_z, 
+                        sensor_packet_main.mag_x, sensor_packet_main.mag_y, sensor_packet_main.mag_z);
+    }
+
+    // seed the AHRS packet with the new values after the Madgwick filter has been updated
+    ahrs_packet_main.roll = filter_main.getRoll();
+    ahrs_packet_main.pitch = filter_main.getPitch();
+    ahrs_packet_main.yaw = filter_main.getYaw();
+
+    Serial.println("finished");
+    unsigned long last_time = micros();
 
     while(1) {
+        unsigned long now = micros();
+        float dt = (now - last_time) / 1000000.0;
+        last_time = now;
+        
+        if (dt > 0) { filter_main.begin(1.0 / dt); }
+
         imu_main.read(sensor_packet_main);  // sensor_packet_main is passed by reference (indicated by the & in imu.hpp), meaning the function can modify the passed parameter in place
         compass_main.read(sensor_packet_main); // this avoids having to make excessive copies of each sensor packet
 

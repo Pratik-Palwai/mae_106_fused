@@ -23,7 +23,7 @@ void setup() {
     imu_main.calibrate();
     compass_main.calibrate();
 
-    filter_main.begin(250); // must match updateAHRS frequency defined in sensors.hpp (250Hz / 4ms period)
+    filter_main.begin(100); // must match updateAHRS frequency defined in sensors.hpp (100Hz / 10ms period)
 
     pinMode(SOLENOID_PIN, OUTPUT);
     pinMode(LED_BUILTIN_PIN, OUTPUT);

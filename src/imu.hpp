@@ -11,7 +11,7 @@ const float GYRO_SCALING = 0.00875; // convert betweeen whatever units the gyro 
 
 // only one instance of this class ever needs to be created because there is only one IMU on the robot
 class InertialMeasurementUnit106 { // placing all the methods into a class makes it easier to split code between files
-    LSM6 sensor; // this is the core sensor, the STMicroelectronics LSM6DSOX
+    LSM6 sensor; // this is the core sensor, the STMicroelectronics LSM6DS33
 
     // gyroscopes drift because the rates even when resting aren't zero
     float rate_bias_x, rate_bias_y, rate_bias_z; // by subtracting the rate biases we can try to minimize the drift (resting rate becomes closer to zero)
@@ -60,9 +60,9 @@ public:
         sensor_packet.gyro_y = (sensor.g.y * GYRO_SCALING) - rate_bias_y;
         sensor_packet.gyro_z = (sensor.g.z * GYRO_SCALING) - rate_bias_z;
 
-        sensor_packet.accel_x = sensor.a.x; // will add accelerometer calibration later
-        sensor_packet.accel_y = sensor.a.y;
-        sensor_packet.accel_z = sensor.a.z;
+        sensor_packet.accel_x = -sensor.a.x; // will add accelerometer calibration later
+        sensor_packet.accel_y = -sensor.a.y;
+        sensor_packet.accel_z = -sensor.a.z;
     }
 };
 
