@@ -1,19 +1,18 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <MadgwickAHRS.h>
 
 #include "ahrs.hpp"
 #include "actuation.hpp"
 #include "imu.hpp"
 #include "magnetometer.hpp"
-#include "packets_vars_functions.hpp"
+#include "robot_variables.hpp"
 #include "switch.hpp"
 
 void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    Wire.begin(3, 4); // default I2C pins on ESP32C3: SDA GPIO8 and SCL GPIO9
+    Wire.begin(3, 4); // default I2C pins on ESP32C3: SDA GPIO3 and SCL GPIO4
     Wire.setClock(400000); // Set I2C clock to 400kHz Fast Mode
     EEPROM.begin(24); // save 24 bytes: 3 axes * 2 values (scaling + offset) * 4 bytes per float
 
@@ -22,9 +21,7 @@ void setup() {
 
     imu_main.calibrate();
     compass_main.calibrate();
-
-    filter_main.begin(100); // must match updateAHRS frequency defined in sensors.hpp (100Hz / 10ms period)
-
+    
     pinMode(SOLENOID_PIN, OUTPUT);
     pinMode(LED_BUILTIN_PIN, OUTPUT);
     pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN);

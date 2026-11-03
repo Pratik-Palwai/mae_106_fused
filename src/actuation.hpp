@@ -5,7 +5,7 @@
 #include <PID_v1.h>
 #include <Servo.h>
 
-#include "packets_vars_functions.hpp"
+#include "robot_variables.hpp"
 
 const int SOLENOID_PIN = 5;
 const int OPEN_TIME = 750, CLOSE_TIME = 250;
@@ -26,16 +26,17 @@ PID steering_correction(&pid_input, &pid_output, &target_heading, K_P, K_I, K_D,
 void steerRobot(void *param) {
     float initial_heading = 180.0;
     float final_heading = 270.0;
+    float current_target = initial_heading;
 
     while(1) {
-        pid_input = ahrs_packet_main.yaw;
+        if (heading_state == 0) { current_target = initial_heading; }
+        else { current_target = final_heading; }
 
-        if (heading_state == 0) { target_heading = initial_heading; }
-        else { target_heading = final_heading; }
+        pid_input = angleDiff(yaw, current_target);
+
         if ((heading_state == 0) && (clicks_on_straight > CLICKS_BEFORE_TURN)) { heading_state = 1; }
         else if (heading_state == 1) {
-            float angle_error = angleDiff(pid_input, target_heading);
-            if (abs(angle_error) < 5.0) { heading_state = 2; } // transition from turning state to corridor state
+            if (abs(pid_input) < 5.0) { heading_state = 2; } // transition from turning state to corridor state
                                                                // even though the heading state changes the target remains the same
             
             clicks_on_straight = 0; // don't increment this value while turning

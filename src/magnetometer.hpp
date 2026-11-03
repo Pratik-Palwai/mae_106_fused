@@ -4,8 +4,9 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <LIS3MDL.h>
+#include <filters.h>
 
-#include "packets_vars_functions.hpp"
+#include "robot_variables.hpp"
 
 #define EEPROM_MAG_X_OFFSET_ADDRESS 0 // a float uses 4 bytes of memory so the addresses are spaced 4 bytes apart
 #define EEPROM_MAG_X_SCALING_ADDRESS 4
@@ -16,12 +17,19 @@
 
 const int MAG_CAL_SAMPLES = 20000;
 
+const float CUTOFF_FREQ = 5.0; // Hz
+const float SAMPLING_TIME = 0.005; // sec
+IIR::ORDER order = IIR::ORDER::OD3;
+
 class Magnetometer106 {
     LIS3MDL sensor; // core sensor, the STM LIS3MDL
 
     float x_offset = 0.0, x_scaling = 1.0; // offsets are for hard-iron calibration
     float y_offset = 0.0, y_scaling = 1.0; // scaling factors are for soft-iron calibration
     float z_offset = 0.0, z_scaling = 1.0;
+
+    Filter x_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
+    Filter y_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
 
     void calibrateToEEPROM() {
         float x_min = 2147483646, x_max = -2147483646; // 32-bit integer limits
@@ -110,13 +118,18 @@ public:
         else { calibrateFromEEPROM(); }
     }
 
-    // read the sensor values and place them into the given sensor packet
-    void read(SensorPacket& sensor_packet) { // because sensor_packet is passed by reference(&) it avoids having to make excessive copies
+    // return the corrected heading of the compass
+    float calculateHeading() {
         sensor.read();
 
-        sensor_packet.mag_x = (sensor.m.x - x_offset) * x_scaling;
-        sensor_packet.mag_y = (sensor.m.y - y_offset) * y_scaling;
-        sensor_packet.mag_z = (sensor.m.z - z_offset) * z_scaling;
+        float mag_x_corrected = (sensor.m.x * x_scaling) - x_offset;
+        float mag_y_corrected = (sensor.m.y * y_scaling) - y_offset;
+
+        float mag_x_filtered = x_filter.filterIn(mag_x_corrected);
+        float mag_y_filtered = y_filter.filterIn(mag_y_corrected);
+
+        float heading_deg = atan2f(mag_y_filtered, mag_x_filtered) * RAD_TO_DEG;
+        return heading_deg;
     }
 };
 
