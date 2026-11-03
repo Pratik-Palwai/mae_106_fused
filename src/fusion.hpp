@@ -15,7 +15,7 @@ class Filter106 {
     unsigned long t_previous = micros();
 
 public:
-    Filter106(float alpha_ = 0.98) { this->alpha = alpha_; }
+    Filter106(float alpha_ = 0.90) { this->alpha = alpha_; }
 
     void setAlpha(float alpha_) { this->alpha = alpha_;}
     

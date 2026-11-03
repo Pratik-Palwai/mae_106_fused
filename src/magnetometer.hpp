@@ -31,6 +31,8 @@ class Magnetometer106 {
     Filter x_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
     Filter y_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
 
+    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
+
     void calibrateToEEPROM() {
         float x_min = 2147483646, x_max = -2147483646; // 32-bit integer limits
         float y_min = 2147483646, y_max = - 2147483646;
@@ -101,7 +103,6 @@ class Magnetometer106 {
     }
 
 public:
-    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
 
     void initialize() {
         if (!sensor.init()) { // initializes the I2C communcation between the ESP32 and the sensor
