@@ -9,9 +9,8 @@
 class Filter106 {
     float alpha = 0.0;
     bool initialized = false;
+    
     float fused_heading = 0.0;
-    float gyro_heading = 0.0;
-    float mag_heading = 0.0;
     unsigned long t_previous = micros();
 
 public:
