@@ -3,6 +3,9 @@
 
 #include <Arduino.h>
 
+bool booted = false;
+unsigned long boot_time = 0;
+
 float yaw = 0.0; // main robot heading variable (-180, 180] deg
 
 const int CLICKS_BEFORE_TURN = 20; // tune this
@@ -31,6 +34,8 @@ void serialOutput(void *param) {
         Serial.print(",yaw:" + String(yaw));
         Serial.print(",clicks:" + String(clicks));
         Serial.print(",heading_state:" + String(heading_state));
+        Serial.print(",booted:" + String(int(booted)));
+        Serial.print(",pressed:" + String(int(digitalRead(8))));
         Serial.print("\r\n");
 
         vTaskDelay(pdMS_TO_TICKS(50));

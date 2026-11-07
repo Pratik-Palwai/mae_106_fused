@@ -5,18 +5,34 @@
 
 #include "robot_variables.hpp"
 
+const int BOOT_PIN = 8;
+bool boot_trigger = false;
+
 const int LIMIT_SWITCH_PIN = 7;
 const int DEBOUNCE_TIME = 25; // [ms]
+bool limit_switch_trigger = false; // latch variable for software debouncing
 
-static long last_time = 0;
+void IRAM_ATTR bootPinISR() { boot_trigger = true; }
 
-bool trigger = false; // latch variable for software debouncing
+void bootRobot(void *param) {
+    while(1) {
+        if (boot_trigger) {
+            booted = true;
+            boot_time = millis();
+            vTaskDelete(NULL);
+        }
 
-void IRAM_ATTR limitSwitchISR() { trigger = true; }
+        vTaskDelay(20);
+    }
+}
+
+void IRAM_ATTR limitSwitchISR() { limit_switch_trigger = true; }
 
 void handleSwitch(void *param) {
+    static long last_time = 0;
+
     while(1) {
-        if (trigger) {
+        if (limit_switch_trigger) {
             long now = millis();
 
             if (now - last_time > DEBOUNCE_TIME) {
@@ -28,7 +44,7 @@ void handleSwitch(void *param) {
                 last_time = now;
             }
 
-            else { trigger = false; }
+            else { limit_switch_trigger = false; }
         }
 
         vTaskDelay(pdMS_TO_TICKS(20)); // executes at 50 Hz
