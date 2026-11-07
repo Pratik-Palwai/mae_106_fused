@@ -24,7 +24,7 @@ void setup() {
     
     pinMode(SOLENOID_PIN, OUTPUT);
     pinMode(LED_BUILTIN_PIN, OUTPUT);
-    pinMode(BOOT_PIN, INPUT_PULLDOWN);
+    pinMode(BOOT_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(BOOT_PIN), bootPinISR, RISING);
     pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH_PIN), limitSwitchISR, RISING);

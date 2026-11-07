@@ -35,7 +35,6 @@ void serialOutput(void *param) {
         Serial.print(",clicks:" + String(clicks));
         Serial.print(",heading_state:" + String(heading_state));
         Serial.print(",booted:" + String(int(booted)));
-        Serial.print(",pressed:" + String(int(digitalRead(8))));
         Serial.print("\r\n");
 
         vTaskDelay(pdMS_TO_TICKS(50));

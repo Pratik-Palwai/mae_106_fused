@@ -54,7 +54,9 @@ void steerRobot(void *param) {
 
 void firePiston(void *param) {
     while (1) {
-        if (millis() >= 72000) { actuation_allowed = false; } // after 75 sec (60 sec competition + 15 sec setup) the piston will shut off
+        if (millis() - boot_time < 15000000) { actuation_allowed = false; } // race hasn't started yet
+        if (millis() - boot_time > 15000000) { actuation_allowed = true; } // race ongoing 
+        if (millis() - boot_time > 75000000) { actuation_allowed = false; } // after 75 sec (60 sec competition + 15 sec setup) the piston will shut off
         if (heading_state == 3) { actuation_allowed = false; } // if the robot has gone down the corridor the piston will shut off
 
         if (actuation_allowed) {
@@ -78,7 +80,8 @@ void blinkLED(void *param) {
         digitalWrite(LED_BUILTIN_PIN, led_status);
         led_status = 1 - led_status;
 
-        vTaskDelay(125);
+        if (!actuation_allowed) { vTaskDelay(125); }
+        if (actuation_allowed) { vTaskDelay(63); }
     }
 }
 

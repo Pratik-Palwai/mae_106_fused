@@ -5,7 +5,7 @@
 
 #include "robot_variables.hpp"
 
-const int BOOT_PIN = 8;
+const int BOOT_PIN = 9;
 bool boot_trigger = false;
 
 const int LIMIT_SWITCH_PIN = 7;
