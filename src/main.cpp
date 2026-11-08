@@ -3,8 +3,7 @@
 
 #include "ahrs.hpp"
 #include "actuation.hpp"
-#include "imu.hpp"
-#include "magnetometer.hpp"
+#include "sensors.hpp"
 #include "robot_variables.hpp"
 #include "switch.hpp"
 
@@ -16,10 +15,12 @@ void setup() {
     Wire.setClock(400000); // Set I2C clock to 400kHz Fast Mode
     EEPROM.begin(16); // save 16 bytes: 2 axes * 2 values (scaling + offset) * 4 bytes per float
 
-    imu_main.initialize();
-    compass_main.initialize();
+    gyro_main.initialize();
+    gyro_main.calibrate();
 
-    imu_main.calibrate();
+    compass_main.manual_calibration = false;
+
+    compass_main.initialize();
     compass_main.calibrate();
     
     pinMode(SOLENOID_PIN, OUTPUT);
@@ -33,7 +34,7 @@ void setup() {
     steering_correction.SetOutputLimits(-40, 40);
     steering_correction.SetMode(AUTOMATIC);
 
-    xTaskCreate(updateAHRS, "AHRS", 4096, NULL, 7, NULL);
+    xTaskCreate(updateHeading, "YAW", 4096, NULL, 7, NULL);
     xTaskCreate(handleSwitch, "SWITCH", 4096, NULL, 6, NULL);
     xTaskCreate(bootRobot, "BOOT", 4096, NULL, 5, NULL);
     xTaskCreate(steerRobot, "STEER", 4096, NULL, 4, NULL);

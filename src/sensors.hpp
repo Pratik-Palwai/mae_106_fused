@@ -1,9 +1,10 @@
-#ifndef MAGNETOMETER_HPP
-#define MAGNETOMETER_HPP
+#ifndef SENSORS_HPP
+#define SENSORS_HPP
 
 #include <Arduino.h>
 #include <EEPROM.h>
 #include <LIS3MDL.h>
+#include <LSM6.h>
 #include <filters.h>
 
 #include "robot_variables.hpp"
@@ -13,22 +14,20 @@
 #define EEPROM_MAG_Y_OFFSET_ADDRESS 8
 #define EEPROM_MAG_Y_SCALING_ADDRESS 12
 
-const int MAG_CAL_SAMPLES = 20000;
-
-const float CUTOFF_FREQ = 5.0; // Hz
-const float SAMPLING_TIME = 0.005; // sec
-IIR::ORDER order = IIR::ORDER::OD3;
-
 class Magnetometer106 {
     LIS3MDL sensor; // core sensor, the STM LIS3MDL
+
+    const int MAG_CAL_SAMPLES = 20000;
 
     float x_offset = 0.0, x_scaling = 1.0; // offsets are for hard-iron calibration
     float y_offset = 0.0, y_scaling = 1.0; // scaling factors are for soft-iron calibration
 
+    const float CUTOFF_FREQ = 10.0; // Hz
+    const float SAMPLING_TIME = 0.005; // sec
+    IIR::ORDER order = IIR::ORDER::OD3;
+
     Filter x_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
     Filter y_filter{CUTOFF_FREQ, SAMPLING_TIME, order};
-
-    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
 
     void calibrateToEEPROM() {
         float x_min = 2147483646, x_max = -2147483646; // 32-bit integer limits
@@ -88,6 +87,7 @@ class Magnetometer106 {
     }
 
 public:
+    bool manual_calibration = false; // decide whether to perform a manual calibration or pull previous values from EEPROM
 
     void initialize() {
         if (!sensor.init()) { // initializes the I2C communcation between the ESP32 and the sensor
@@ -116,6 +116,61 @@ public:
 
         float heading_deg = atan2f(mag_y_filtered, mag_x_filtered) * RAD_TO_DEG;
         return heading_deg;
+    }
+
+    float calculateHeadingUnfiltered() {
+        sensor.read();
+
+        float mag_x_corrected = (sensor.m.x * x_scaling) - x_offset;
+        float mag_y_corrected = (sensor.m.y * y_scaling) - y_offset;
+
+        float heading_deg = atan2f(mag_y_corrected, mag_x_corrected) * RAD_TO_DEG;
+        return heading_deg;
+    }
+};
+
+class Gyro106 { // placing all the methods into a class makes it easier to split code between files
+    LSM6 sensor; // this is the core sensor, the STMicroelectronics LSM6DS33
+
+    const int GYRO_CAL_SAMPLES = 3000;
+    const float GYRO_SCALING = 0.00875; // convert betweeen whatever units the gyro is in to degrees per second
+
+    // gyroscopes drift because the rates even when resting aren't zero
+    float rate_bias_z; // by subtracting the rate biases we can try to minimize the drift (resting rate becomes closer to zero)
+
+public:
+    void initialize() { // initializes the I2C communcation between the ESP32 and the sensor
+        if (!sensor.init()) { 
+            Serial.println("Failed to detect/initialize LSM6");
+            while(1);
+        }
+        else { Serial.println("Successfully detected and initialized LSM6"); }
+        
+        sensor.enableDefault();        
+    }
+
+    // take samples from the gyro and average them out over a few seconds to calculate the rate bias offsets
+    void calibrate() {
+        double rates_sum_x = 0.0, rates_sum_y = 0.0, rates_sum_z = 0.0;
+
+        Serial.print("Starting gyro calibration loop ... ");
+
+        for (int i = 0; i < GYRO_CAL_SAMPLES; ++i) {
+            delay(1); sensor.read();
+            rates_sum_z += sensor.g.z * GYRO_SCALING;
+        }
+
+        Serial.println("finished");
+
+        rate_bias_z = rates_sum_z / GYRO_CAL_SAMPLES;
+
+        Serial.println("    gyro_rate_bias_z: " + String(rate_bias_z));
+    }
+
+    // return the corrected rate of the gyro in degrees/second
+    float getRate() {
+        sensor.read();
+        return (sensor.g.z * GYRO_SCALING) - rate_bias_z;
     }
 };
 
