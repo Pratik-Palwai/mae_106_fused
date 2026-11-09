@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "ahrs.hpp"
+#include "heading.hpp"
 #include "actuation.hpp"
 #include "sensors.hpp"
 #include "robot_variables.hpp"

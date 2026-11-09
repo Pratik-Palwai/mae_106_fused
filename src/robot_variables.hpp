@@ -11,6 +11,9 @@ float yaw = 0.0; // main robot heading variable (-180, 180] deg
 int clicks = 0; // will be incremented by the handleSwitch task and the interrupt
 int clicks_on_straight = 0; // for knowing when to stop at the end of the trench
 
+const float ALPHA_DEFAULT = 0.96; // lower values trust the compass more
+float alpha = ALPHA_DEFAULT;
+
 int heading_state = 0; // 0:initial heading, 1:initial turning, 2:final heading, 3: stop
 
 // returns difference between angles, accounting for angle wrapping

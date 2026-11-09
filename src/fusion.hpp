@@ -7,17 +7,12 @@
 #include <robot_variables.hpp>
 
 class Filter106 {
-    float alpha = 0.0;
     bool initialized = false;
     
     float fused_heading = 0.0;
     unsigned long t_previous = micros();
 
-public:
-    Filter106(float alpha_ = 0.90) { this->alpha = alpha_; }
-
-    void setAlpha(float alpha_) { this->alpha = alpha_;}
-    
+public:    
     void reset(float initial_heading) {
         fused_heading = initial_heading;
         t_previous = micros();

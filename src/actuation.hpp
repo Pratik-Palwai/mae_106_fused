@@ -67,8 +67,14 @@ void firePiston(void *param) {
         if (actuation_allowed) {
             digitalWrite(SOLENOID_PIN, solenoid_state);
 
-            if (solenoid_state) { vTaskDelay(pdMS_TO_TICKS(OPEN_TIME)); }
-            else { vTaskDelay(pdMS_TO_TICKS(CLOSE_TIME)); }
+            if (solenoid_state) {
+                alpha = 1.0; // trust the gyro completely because the compass will experience noise
+                vTaskDelay(pdMS_TO_TICKS(OPEN_TIME));
+            }
+            else {
+                alpha = ALPHA_DEFAULT; // return the gyro to its default state
+                vTaskDelay(pdMS_TO_TICKS(CLOSE_TIME));
+            }
 
             solenoid_state = !solenoid_state;
         }
