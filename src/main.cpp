@@ -11,28 +11,12 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    Wire.begin(3, 4); // default I2C pins on ESP32C3: SDA GPIO3 and SCL GPIO4
-    Wire.setClock(400000); // Set I2C clock to 400kHz Fast Mode
-    EEPROM.begin(16); // save 16 bytes: 2 axes * 2 values (scaling + offset) * 4 bytes per float
-
-    gyro_main.initialize();
-    gyro_main.calibrate();
-
     compass_main.manual_calibration = false;
-
-    compass_main.initialize();
-    compass_main.calibrate();
     
-    pinMode(SOLENOID_PIN, OUTPUT);
-    pinMode(LED_BUILTIN_PIN, OUTPUT);
     pinMode(BOOT_PIN, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(BOOT_PIN), bootPinISR, RISING);
     pinMode(LIMIT_SWITCH_PIN, INPUT_PULLDOWN);
     attachInterrupt(digitalPinToInterrupt(LIMIT_SWITCH_PIN), limitSwitchISR, RISING);
-
-    steering_servo.attach(SERVO_PIN);
-    steering_correction.SetOutputLimits(-40, 40);
-    steering_correction.SetMode(AUTOMATIC);
 
     xTaskCreate(updateHeading, "YAW", 4096, NULL, 7, NULL);
     xTaskCreate(handleSwitch, "SWITCH", 4096, NULL, 6, NULL);

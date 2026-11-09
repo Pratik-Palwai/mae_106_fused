@@ -22,17 +22,19 @@ const int SERVO_PIN = 2;
 // tune these depending on the track length
 const int CLICKS_BEFORE_TURN = 20, CLICKS_AFTER_TURN = 20;
 
-// pid input and output variables, used in actuation.hpp
-double pid_input = 0.0, target_heading = 0.0, pid_output = 0.0;
-
 // pid mode can be DIRECT or REVERSE depending on how the servo and magnetometer are mounted
 const float K_P = 0.50, K_I = 0.0, K_D = 0.0;
+double pid_input = 0.0, target_heading = 0.0, pid_output = 0.0;
 PID steering_correction(&pid_input, &pid_output, &target_heading, K_P, K_I, K_D, REVERSE);
 
 void steerRobot(void *param) {
     float initial_heading = 180.0;
     float final_heading = 270.0;
     float current_target = initial_heading;
+
+    steering_servo.attach(SERVO_PIN);
+    steering_correction.SetOutputLimits(-40, 40);
+    steering_correction.SetMode(AUTOMATIC);
 
     while(1) {
         if (heading_state == 0) { current_target = initial_heading; }
@@ -58,6 +60,8 @@ void steerRobot(void *param) {
 }
 
 void firePiston(void *param) {
+    pinMode(SOLENOID_PIN, OUTPUT);
+
     while (1) {
         if (millis() - boot_time < 15000000) { actuation_allowed = false; } // race hasn't started yet
         if (millis() - boot_time > 15000000) { actuation_allowed = true; } // race ongoing 
@@ -87,6 +91,8 @@ void firePiston(void *param) {
 }
 
 void blinkLED(void *param) {
+    pinMode(LED_BUILTIN_PIN, OUTPUT);
+    
     while (1) {
         digitalWrite(LED_BUILTIN_PIN, led_status);
         led_status = 1 - led_status;
